@@ -1,6 +1,14 @@
 
 import express from "express";
 import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 dotenv.config();
 
@@ -8,6 +16,11 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.get("/", (req, res) => {
+    res.sendFile(
+        new URL("./public/index.html", import.meta.url).pathname
+    );
+});
 app.use(express.static("public"));
 
 // Generate image using Pollinations

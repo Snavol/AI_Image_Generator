@@ -4,36 +4,31 @@ import dotenv from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json());
+
+// Test backend
 app.get("/test", (req, res) => {
     res.json({
         status: "success",
         message: "Backend is working!"
     });
 });
+
+// Serve homepage
 app.get("/", (req, res) => {
-    res.sendFile(
-        new URL("./public/index.html", import.meta.url).pathname
-    );
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
-app.use(express.static("public"));
 
-// Generate image using Pollinations
+// Generate image
 app.post("/generate-image", async (req, res) => {
-
     try {
-
         const category = req.body.category;
 
         if (!category || !category.trim()) {
@@ -42,34 +37,23 @@ app.post("/generate-image", async (req, res) => {
             });
         }
 
-        console.log("Generating image:", category);
-
-        // Encode the prompt
         const prompt = encodeURIComponent(category);
 
-        // Call Pollinations API
         const response = await fetch(
             `https://gen.pollinations.ai/image/${prompt}?model=black-forest-labs/flux.1-schnell`,
             {
-                method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${process.env.POLLINATIONS_API_KEY}`
+                    Authorization: `Bearer ${process.env.POLLINATIONS_API_KEY}`
                 }
             }
         );
 
         if (!response.ok) {
             const errorText = await response.text();
-
-            throw new Error(
-                `Pollinations API error (${response.status}): ${errorText}`
-            );
+            throw new Error(`Pollinations API error (${response.status}): ${errorText}`);
         }
 
-        // Get generated image
         const imageBuffer = await response.arrayBuffer();
-
-        const imageBase64 = Buffer.from(imageBuffer).toString("base64");
 
         const mimeType =
             response.headers.get("content-type") || "image/jpeg";
@@ -78,28 +62,26 @@ app.post("/generate-image", async (req, res) => {
             throw new Error("API did not return an image.");
         }
 
-        console.log("Image generated successfully!");
-
-        // Send image to frontend
         res.json({
-            image: imageBase64,
-            mimeType: mimeType
+            image: Buffer.from(imageBuffer).toString("base64"),
+            mimeType
         });
 
-    }
-
-    catch (error) {
-
+    } catch (error) {
         console.error("Image generation failed:", error);
 
         res.status(500).json({
             error: error.message
         });
-
     }
-
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+// Export Express application for Vercel
+export default app;
+
+// Local development
+if (process.env.NODE_ENV !== "production") {
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}

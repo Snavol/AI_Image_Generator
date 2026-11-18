@@ -16,6 +16,12 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.get("/test", (req, res) => {
+    res.json({
+        status: "success",
+        message: "Backend is working!"
+    });
+});
 app.get("/", (req, res) => {
     res.sendFile(
         new URL("./public/index.html", import.meta.url).pathname

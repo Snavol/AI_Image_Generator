@@ -7,13 +7,17 @@ import { fileURLToPath } from "node:url";
 dotenv.config();
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+
+// Middleware
 app.use(express.json());
 
-// Test backend
+
+// Test route
 app.get("/test", (req, res) => {
     res.json({
         status: "success",
@@ -21,14 +25,18 @@ app.get("/test", (req, res) => {
     });
 });
 
-// Serve homepage
+
+// Homepage
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+
 // Generate image
 app.post("/generate-image", async (req, res) => {
+
     try {
+
         const category = req.body.category;
 
         if (!category || !category.trim()) {
@@ -37,20 +45,26 @@ app.post("/generate-image", async (req, res) => {
             });
         }
 
+        console.log("Generating image:", category);
+
         const prompt = encodeURIComponent(category);
 
         const response = await fetch(
             `https://gen.pollinations.ai/image/${prompt}?model=black-forest-labs/flux.1-schnell`,
             {
+                method: "GET",
                 headers: {
-                    Authorization: `Bearer ${process.env.POLLINATIONS_API_KEY}`
+                    "Authorization": `Bearer ${process.env.POLLINATIONS_API_KEY}`
                 }
             }
         );
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Pollinations API error (${response.status}): ${errorText}`);
+
+            throw new Error(
+                `Pollinations API error (${response.status}): ${errorText}`
+            );
         }
 
         const imageBuffer = await response.arrayBuffer();
@@ -62,26 +76,35 @@ app.post("/generate-image", async (req, res) => {
             throw new Error("API did not return an image.");
         }
 
+        const imageBase64 = Buffer.from(imageBuffer).toString("base64");
+
         res.json({
-            image: Buffer.from(imageBuffer).toString("base64"),
-            mimeType
+            image: imageBase64,
+            mimeType: mimeType
         });
 
     } catch (error) {
+
         console.error("Image generation failed:", error);
 
         res.status(500).json({
             error: error.message
         });
+
     }
+
 });
 
-// Export Express application for Vercel
+
+// Export Express app for Vercel
 export default app;
 
-// Local development
+
+// Start server locally
 if (process.env.NODE_ENV !== "production") {
+
     app.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
     });
+
 }

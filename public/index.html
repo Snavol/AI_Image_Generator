@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="container">
+
+            <div class="heading-container">
+                <h1>GeeksforGeeks</h1>
+                <h2 class="heading">AI Image Generator Website Using JavaScript</h2>
+                <h5 class="sub-heading">
+                    Enter text in the input bar below and
+                    <br>
+                    get an AI-generated image related to your text.
+                </h5>
+            </div>
+
+            <div class="form-container">
+                <form class="my-form" id="generate-image-form">
+
+                    <input
+                        id="input-valur"
+                        placeholder="Enter some text..."
+                        type="text"
+                        class="form-input form-controls"
+                    >
+
+                    <button
+                        type="submit"
+                        class="image-generate-btn-form-controls">
+                        Generate Image
+                    </button>
+
+                </form>
+            </div>
+
+            <div id="images-visible" class="image-container">
+                <p id="imageContainerText"></p>
+
+                <img
+                    id="generated-image"
+                    class="my-generated-image"
+                    src=""
+                    alt="AI Generated Image"
+                >
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -10,7 +10,6 @@ let imageGenerated = document.getElementById("generated-image");
 let imageContainer = document.getElementById("images-visible");
 
 
-// Function to generate image
 async function fetchImages(category) {
 
     try {
@@ -21,7 +20,6 @@ async function fetchImages(category) {
 
         imageGenerated.style.display = "none";
 
-        // Send request to backend
         let response = await fetch("/generate-image", {
 
             method: "POST",
@@ -36,13 +34,32 @@ async function fetchImages(category) {
 
         });
 
-        let result = await response.json();
+        let responseText = await response.text();
 
-        if (!response.ok) {
-            throw new Error(result.error);
+        console.log("Server response:", responseText);
+        console.log("Status code:", response.status);
+
+        let result;
+
+        try {
+            result = JSON.parse(responseText);
         }
 
-        // Set generated image
+        catch (error) {
+
+            throw new Error(
+                `Backend returned an invalid response: ${responseText}`
+            );
+
+        }
+        if (!response.ok) {
+
+            throw new Error(
+                result.error || "Image generation failed"
+            );
+
+        }
+
         imageGenerated.src =
             `data:${result.mimeType};base64,${result.image}`;
 
@@ -55,11 +72,18 @@ async function fetchImages(category) {
 
         };
 
+        imageGenerated.onerror = () => {
+
+            imageContainerText.innerText =
+                "Unable to display the generated image.";
+
+        };
+
     }
 
     catch (error) {
 
-        console.log(error);
+        console.error("Image generation error:", error);
 
         imageContainerText.innerText =
             "Error: " + error.message;
@@ -69,7 +93,6 @@ async function fetchImages(category) {
 }
 
 
-// Handle form submission
 generateImageForm.addEventListener("submit", (e) => {
 
     e.preventDefault();
